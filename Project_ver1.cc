@@ -1,6 +1,9 @@
 #include <iostream>
 #include <fstream>
 using namespace std;
+class task{
+
+};
 
 int main()
 {
