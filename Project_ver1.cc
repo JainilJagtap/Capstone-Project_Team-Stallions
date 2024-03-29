@@ -79,26 +79,29 @@ public:
     }
 };
 
-void addTask(string& fileName){
-    ofstream fileOut(fileName);
+void addTask(const string& fileName) {
+    ofstream fileOut(fileName, ios::app); 
     Task newTask;
     cout << "Enter the task description: ";
+    cin.ignore(); 
     getline(cin, newTask.description);
+
     cout << "Enter the priority: ";
     cin >> newTask.priority;
-    IgnoreNewChar;
 
     if(fileOut.is_open()){
         fileOut << newTask.description << "|" << newTask.priority << endl;
-        fileOut.close();
         cout << "Task successfully added to the file." << endl;
+        fileOut.close();
     }
     else{
         cout << "Unable to open file to write task." << endl;
     }
 }
 
-void FileToQueue(PriorityQueue& pq, string& fileName){
+
+
+void FileToQueue(PriorityQueue& pq, const string& fileName){
     ifstream fileIn(fileName);
     if(fileIn.is_open()){
         string s;
@@ -112,13 +115,14 @@ void FileToQueue(PriorityQueue& pq, string& fileName){
             task.priority = stoi(s.substr(sep + 1));
             pq.push(task.description, task.priority);
         }
-        fileIn.close();
+        fileIn.close(); 
         cout << "Task successfully transferred from file to priority queue." << endl;
     }
     else{
         cout << "Unable to open file for file to queue transfer." << endl;
     }
 }
+
 
 int main(){
     string fileName = "Task.txt";
@@ -139,6 +143,11 @@ int main(){
         if(num == 2){
             addTask(fileName);
             FileToQueue(pq, fileName);
+        }
+
+        if(num==3)
+        {
+            cout<<pq.peek()<<endl;
         }
     }
     return 0;
