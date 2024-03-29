@@ -1,45 +1,53 @@
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
+#include <string>
+#define IgnoreNewChar cin.ignore()                           //this will ignore any newline character
 using namespace std;
 
-class task
-{
+//Class for defining task
+class Task
+{  
+    public:
+    string description;
+    int priority;
+
 };
 
-struct Node
+class Priority_Queue
 {
+    public:
     int data;
     int priority;
-    Node *next;
+    Priority_Queue *next;
 };
 
-Node *newNode(int d, int p)
+Priority_Queue *newNode(int d, int p)
 {
-    Node *temp = (Node *)malloc(sizeof(Node));
+    Priority_Queue *temp = (Priority_Queue *)malloc(sizeof(Priority_Queue));
     temp->data = d;
     temp->priority = p;
     temp->next = nullptr;
     return temp;
 }
 
-int peek(Node *head)
+int peek(Priority_Queue *head)
 {
     return head->data;
 }
 
-void pop(Node *&head)
+void pop(Priority_Queue *&head)
 {
-    Node *temp = head;
+    Priority_Queue *temp = head;
     head = head->next;
     free(temp);
 }
 
-void push(Node *&head, int d, int p)
+void push(Priority_Queue *&head, int d, int p)
 {
-    Node *start = head;
+    Priority_Queue *start = head;
 
-    Node *temp = newNode(d, p);
+    Priority_Queue *temp = newNode(d, p);
     if (head->priority < p)
     {
         temp->next = head;
@@ -57,13 +65,65 @@ void push(Node *&head, int d, int p)
     }
 }
 
-bool isEmpty(Node *head)
+bool isEmpty(Priority_Queue *head)
 {
     return head == nullptr;
 }
 
+void addTask(string& filename){
+
+    ofstream fileOut(filename);               //opening the task file to add tasks
+    Task newTask;
+    cout<<"Enter the task description: ";
+    getline(cin,newTask.description);
+    cout<<"Enter the priority: ";
+    cin>>newTask.priority;
+    IgnoreNewChar;
+
+    //adding task to the file
+    if(fileOut.is_open()){
+        fileOut<<newTask.description<<"|"<<newTask.priority<<endl;                  //here '|' separates the description and priority in file
+        fileOut.close();
+        cout<<"Task successfully added to the file."<<endl;
+    }
+    else{
+        cout<<"Unable to open file to write task."<<endl;
+    }
+
+}
+
+//this function loads all the tasks left in the file to the priority queue
+void FileToQueue(Priority_Queue* pq,string& filename){
+    ifstream fileIn(filename);
+    if(fileIn.is_open()){
+        string s;
+        while(fileIn.eof()==0){
+            getline(fileIn,s);
+            Task task;
+            int sep;
+            for(sep=0;sep<s.size();sep++){
+                if(s[sep]=='|') break;
+                else{
+                    task.description+=s[sep];
+                }
+            }
+            task.priority=s[sep+1];
+            //pushing task from file to priority queue
+            push(pq,task.description,task.priority);        //for now this push function is of priority queue which is to be reimplemented in the class
+        }
+        fileIn.close();
+        cout<<"Task successfully transferred from file to priority queue."<<endl;
+    }
+    else{
+        cout<<"Unable to open file for file to queue transfer."<<endl;
+    }
+}
+
 int main()
 {
+
+    
+
     while (1)
     {
         cout << "To add a task press 2" << endl;
@@ -80,7 +140,7 @@ int main()
 
         if (num == 2)
         {
-            Node *pq;
+            Priority_Queue *pq;
             pq = newNode(4, 5);
             push(pq, 5, 3);
             push(pq, 4, 3);
