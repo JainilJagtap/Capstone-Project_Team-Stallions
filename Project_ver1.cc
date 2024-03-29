@@ -13,62 +13,71 @@ class Task
     int priority;
 
 };
-
-class Priority_Queue
+class Node
 {
-    public:
-    int data;
+public:
+    string data;
     int priority;
-    Priority_Queue *next;
+    Node *next;
+
+    Node(string d, int p) : data(d), priority(p), next(nullptr) {}
 };
 
-Priority_Queue *newNode(int d, int p)
+class PriorityQueue
 {
-    Priority_Queue *temp = (Priority_Queue *)malloc(sizeof(Priority_Queue));
-    temp->data = d;
-    temp->priority = p;
-    temp->next = nullptr;
-    return temp;
-}
+private:
+    Node *head;
 
-int peek(Priority_Queue *head)
-{
-    return head->data;
-}
+public:
+    PriorityQueue() : head(nullptr) {}
 
-void pop(Priority_Queue *&head)
-{
-    Priority_Queue *temp = head;
-    head = head->next;
-    free(temp);
-}
-
-void push(Priority_Queue *&head, int d, int p)
-{
-    Priority_Queue *start = head;
-
-    Priority_Queue *temp = newNode(d, p);
-    if (head->priority < p)
+    void push(string d, int p)
     {
-        temp->next = head;
-        head = temp;
-    }
-    else
-    {
-        while (start->next != nullptr && start->next->priority > p)
+        Node *temp = new Node(d, p);
+        if (head == nullptr || head->priority < p)
         {
-            start = start->next;
+            temp->next = head;
+            head = temp;
         }
-
-        temp->next = start->next;
-        start->next = temp;
+        else
+        {
+            Node *start = head;
+            while (start->next != nullptr && start->next->priority > p)
+            {
+                start = start->next;
+            }
+            temp->next = start->next;
+            start->next = temp;
+        }
     }
-}
 
-bool isEmpty(Priority_Queue *head)
-{
-    return head == nullptr;
-}
+    string peek()
+    {
+        if (head != nullptr)
+            return head->data;
+        return "";
+    }
+
+    void pop()
+    {
+        if (head == nullptr)
+            return;
+        Node *temp = head;
+        head = head->next;
+        delete temp;
+    }
+
+    bool isEmpty()
+    {
+        return head == nullptr;
+    }
+
+    ~PriorityQueue()
+    {
+        while (!isEmpty())
+            pop();
+    }
+};
 
 void addTask(string& filename){
 
