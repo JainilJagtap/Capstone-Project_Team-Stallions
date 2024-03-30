@@ -1,9 +1,9 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#define IgnoreNewChar cin.ignore                  //for ignoring newline character
 using namespace std;
 
-#define IgnoreNewChar cin.ignore()
 
 //Class for defining task
 class Task
@@ -13,6 +13,7 @@ public:
     int priority;
 };
 
+//creating a linked list 
 class Node
 {
 public:
@@ -23,6 +24,7 @@ public:
     Node(string d, int p) : data(d), priority(p), next(nullptr) {}
 };
 
+//using the linked list created, creating a class priority queue
 class PriorityQueue
 {
 private:
@@ -79,18 +81,21 @@ public:
     }
 };
 
+
+//function to add a task to the file
 void addTask(const string& fileName) {
     ofstream fileOut(fileName, ios::app); 
     Task newTask;
     cout << "Enter the task description: ";
-    cin.ignore(); 
+    IgnoreNewChar; 
     getline(cin, newTask.description);
 
     cout << "Enter the priority: ";
     cin >> newTask.priority;
-
+    IgnoreNewChar;
+    
     if(fileOut.is_open()){
-        fileOut << newTask.description << "|" << newTask.priority << endl;
+        fileOut << newTask.description << "|" << newTask.priority << endl;               //we are using '|' symbol to separate the task description and priority in the file
         cout << "Task successfully added to the file." << endl;
         fileOut.close();
     }
@@ -100,7 +105,7 @@ void addTask(const string& fileName) {
 }
 
 
-
+//function to load any left tasks from the file to priority queue
 void FileToQueue(PriorityQueue& pq, const string& fileName){
     ifstream fileIn(fileName);
     if(fileIn.is_open()){
@@ -112,7 +117,7 @@ void FileToQueue(PriorityQueue& pq, const string& fileName){
                 if(s[sep] == '|') break;
                 else task.description += s[sep];
             }
-            task.priority = stoi(s.substr(sep + 1));
+            task.priority = s[sep+1]-'0';                 //this will give the numerical priority stored in the file after the symbol '|'
             pq.push(task.description, task.priority);
         }
         fileIn.close(); 
@@ -127,7 +132,9 @@ void FileToQueue(PriorityQueue& pq, const string& fileName){
 int main(){
     string fileName = "Task.txt";
     PriorityQueue pq;
-
+    
+    FileToQueue(pq,fileName);         //loading all tasks from the file to priority queue at the beginning of program since there could be some left over tasks in file
+    
     while(true){
         cout << "To add a task press 2" << endl;
         cout << "To mark a task done press 3" << endl;
