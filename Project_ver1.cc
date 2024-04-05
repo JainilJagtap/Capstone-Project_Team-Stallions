@@ -93,6 +93,71 @@ public:
     }
 };
 
+void getdeadline(PriorityQueue &pq, const string &fileName)
+{
+    string a;
+    string date;
+    cout<<"Enter the task name"<<endl;
+    cin>>a;
+    IgnoreNewChar;
+
+    ifstream fileIn(fileName);
+
+    if (fileIn.is_open())
+    {
+        string s;
+        while (getline(fileIn, s))
+        {
+            string x;
+            int j = 0;
+            while (s[j] != ',')
+            {
+                x += s[j];
+                j++;
+            }
+            if (x == a)
+            {
+                int i = 0;
+                while (s[i] != ',')
+                {
+                    i++;
+                }
+                i++;
+                while (i < s.size() && s[i] != ',')
+                {
+                    i++;
+                }
+                if (i < s.size())
+                {
+                    string dd, mm, yy;
+                    dd = s.substr(i + 1, 2);
+                    mm = s.substr(i + 4, 2);
+                    yy = s.substr(i + 7, 2);
+
+                    int ddd, mmm, yyy;
+                    ddd = stoi(dd);
+                    mmm = stoi(mm);
+                    yyy = stoi(yy);
+
+                    time_t now = time(0);
+                    tm *ltm = localtime(&now);
+                    int curr_year = ltm->tm_year - 100;
+                    int curr_month = 1 + ltm->tm_mon;
+                    int curr_day = ltm->tm_mday;
+
+                    int remaining_days = (yyy - curr_year) * 365 + (mmm - curr_month) * 30 + (ddd - curr_day);
+                    cout << "Days remaining for the task: " << remaining_days << endl;
+                    break;
+                }
+            }
+        }
+    }
+    else
+    {
+        cout << "Unable to open file for reading." << endl; // Debugging output
+    }
+}
+
 // function to add a task to the file
 void addTask(const string &fileName)
 {
@@ -111,7 +176,7 @@ void addTask(const string &fileName)
 
     if (fileOut.is_open())
     {
-        fileOut << newTask.description << "," << newTask.priority << "," << newTask.date << endl; // we are using ',' symbol to separate the task description and priority in the file
+        fileOut << newTask.description << "," << newTask.priority << "," << newTask.date << endl; // we are using '|' symbol to separate the task description and priority in the file
         cout << "Task successfully added to the file." << endl;
         fileOut.close();
     }
@@ -175,10 +240,10 @@ void remainderfunc(PriorityQueue &pq, const string &fileName)
         while (getline(fileIn, s))
         {
             string x;
-            int j=0;
-            while(s[j]!=',')
+            int j = 0;
+            while (s[j] != ',')
             {
-                x+=s[j];
+                x += s[j];
                 j++;
             }
             if (x == a)
@@ -207,7 +272,7 @@ void remainderfunc(PriorityQueue &pq, const string &fileName)
 
                     time_t now = time(0);
                     tm *ltm = localtime(&now);
-                    int curr_year = ltm->tm_year-100;
+                    int curr_year = ltm->tm_year - 100;
                     int curr_month = 1 + ltm->tm_mon;
                     int curr_day = ltm->tm_mday;
 
@@ -224,49 +289,6 @@ void remainderfunc(PriorityQueue &pq, const string &fileName)
     }
 }
 
-//delte task//
-void deletetask(const string& s, const string& fileName)
-{
-    ifstream fileIn(fileName);
-    ofstream newFileOut("temp.txt");
-    if (fileIn.is_open() && newFileOut.is_open()) {
-        string x;
-        while (getline(fileIn, x)) {
-            string des;
-            int i;
-            for (i = 0; i < x.size(); i++) {
-                if (x[i] == ',')
-                    break;
-                else {
-                    des += x[i];
-                }
-            }
-            int prio = x[i + 1] - '0';
-            i = i + 3;
-            string dat;
-            for (int j = i; j < x.size(); j++) {
-                dat += x[j];
-            }
-
-            if (des == s) {
-                // Skip writing this task to the new file
-                continue;
-            } else {
-                newFileOut << des << "," << prio << "," << dat << endl;
-            }
-        }
-        fileIn.close();
-        newFileOut.close();
-
-        // Remove the old file and rename the new one
-        remove(fileName.c_str());
-        rename("temp.txt", fileName.c_str());
-        cout << "Task successfully deleted from the file." << endl;
-    } else {
-        cout << "Unable to open file for task deletion." << endl;
-    }
-}
-
 int main()
 {
     string fileName = "Task_List.txt";
@@ -276,32 +298,31 @@ int main()
 
     while (true)
     {
-        //this would give the remainder in console everytime the program is running
         remainderfunc(pq, fileName);
 
         cout << "To add a task press 2" << endl;
-        cout << "To delete a task press 3" << endl;
+        cout << "To mark a task done press 3" << endl;
         cout << "To get deadline of task with maximum priority press 4" << endl;
         cout << "To see the deadline of all pending task press 5" << endl;
-        cout << "To exit the program press 6" << endl;
+        cout << "To see the deadline of particular task press 6" << endl;
+        cout << "To exit the program press 7" << endl;
 
         int num;
         cin >> num;
 
-        if (num == 6)
-            break;
+        if (num == 7)
+        break;
 
+        if(num==6)
+        getdeadline(pq, fileName);
+        
         if (num == 2)
         {
-            
+
             addTask(fileName);
             FileToQueue(pq, fileName);
         }
-        if(num==3){
-            string str;
-            cin>>str;
-            deletetask(str,fileName);
-        }
+
         if (num == 4)
         {
             cout << pq.peek() << endl;
