@@ -47,7 +47,7 @@ public:
 
         int remaining_days=(y-curr_year)*365+(m-curr_month)*30+(dy-curr_day);
 
-        if (head == nullptr || ((head->year-curr_year)*365+(head->month-curr_month)*30+(head->day-curr_day))>remaining_days)
+        if (head == nullptr || (((head->year-curr_year)*365+(head->month-curr_month)*30+(head->day-curr_day))>remaining_days) || ((((head->year-curr_year)*365+(head->month-curr_month)*30+(head->day-curr_day)))==remaining_days && p>head->priority))
         {
             temp->next = head;
             head = temp;
@@ -57,7 +57,7 @@ public:
             Node *start = head;
             
             // int deadline = (y-curr_year)+(m-curr_month)+(dy-curr_day);
-            while (start->next != nullptr && ((start->next->year-curr_year)*365+(start->next->month-curr_month)*30+(start->next->day-curr_day))<remaining_days)
+            while (start->next != nullptr && ((((start->next->year-curr_year)*365+(start->next->month-curr_month)*30+(start->next->day-curr_day))<remaining_days) || ((((start->next->year-curr_year)*365+(start->next->month-curr_month)*30+(start->next->day-curr_day))==remaining_days) && start->next->priority>p)))
             {
                 start = start->next;
             }
