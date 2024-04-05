@@ -1,7 +1,8 @@
 #include <iostream>
 #include <fstream>
+#include <ctime>
 #include <string>
-#define IgnoreNewChar cin.ignore                  //for ignoring newline character
+#define IgnoreNewChar cin.ignore()                  //for ignoring newline character
 using namespace std;
 
 
@@ -11,17 +12,19 @@ class Task
 public:
     string description;
     int priority;
+    string date;
 };
 
 //creating a linked list 
 class Node
 {
-public:
+public: 
     string data;
     int priority;
+    int day,month,year;
     Node *next;
 
-    Node(string d, int p) : data(d), priority(p), next(nullptr) {}
+    Node(string d, int p,int dy,int m,int y) : data(d), priority(p),day(dy), month(m), year(y), next(nullptr) {}
 };
 
 //using the linked list created, creating a class priority queue
@@ -33,10 +36,18 @@ private:
 public:
     PriorityQueue() : head(nullptr) {}
 
-    void push(string d, int p)
+    void push(string d, int p, int dy, int m, int y)
     {
-        Node *temp = new Node(d, p);
-        if (head == nullptr || head->priority < p)
+        Node *temp = new Node(d, p, dy, m, y);
+        time_t now = time(0);
+        tm *ltm = localtime(&now);
+        int curr_year = 1900 + ltm->tm_year;
+        int curr_month = 1 + ltm->tm_mon;
+        int curr_day = ltm->tm_mday;
+
+        int remaining_days=(y-curr_year)*365+(m-curr_month)*30+(dy-curr_day);
+
+        if (head == nullptr || ((head->year-curr_year)*365+(head->month-curr_month)*30+(head->day-curr_day))>remaining_days)
         {
             temp->next = head;
             head = temp;
@@ -44,7 +55,9 @@ public:
         else
         {
             Node *start = head;
-            while (start->next != nullptr && start->next->priority > p)
+            
+            // int deadline = (y-curr_year)+(m-curr_month)+(dy-curr_day);
+            while (start->next != nullptr && ((start->next->year-curr_year)*365+(start->next->month-curr_month)*30+(start->next->day-curr_day))<remaining_days)
             {
                 start = start->next;
             }
@@ -93,9 +106,12 @@ void addTask(const string& fileName) {
     cout << "Enter the priority: ";
     cin >> newTask.priority;
     IgnoreNewChar;
-    
+    cout<<"Enter the deadline date as dd mm yy: ";
+    cin>>newTask.date;
+    IgnoreNewChar;
+
     if(fileOut.is_open()){
-        fileOut << newTask.description << "|" << newTask.priority << endl;               //we are using '|' symbol to separate the task description and priority in the file
+        fileOut << newTask.description << "," << newTask.priority << "," <<newTask.date<< endl;               //we are using '|' symbol to separate the task description and priority in the file
         cout << "Task successfully added to the file." << endl;
         fileOut.close();
     }
@@ -114,11 +130,22 @@ void FileToQueue(PriorityQueue& pq, const string& fileName){
             Task task;
             int sep;
             for(sep = 0; sep < s.size(); sep++){
-                if(s[sep] == '|') break;
+                if(s[sep] == ',') break;
                 else task.description += s[sep];
             }
-            task.priority = s[sep+1]-'0';                 //this will give the numerical priority stored in the file after the symbol '|'
-            pq.push(task.description, task.priority);
+            sep++;
+            task.priority = s[sep]-'0';                 //this will give the numerical priority stored in the file after the symbol '|'
+            
+            string dd,mm,yy;
+            dd=s.substr(sep+2,2);
+            mm=s.substr(sep+5,2);
+            yy=s.substr(sep+8,2);
+
+            int ddd,mmm,yyy;
+            ddd=stoi(dd);
+            mmm=stoi(mm);
+            yyy=stoi(yy);
+            pq.push(task.description, task.priority,ddd,mmm,yyy);
         }
         fileIn.close(); 
         cout << "Task successfully transferred from file to priority queue." << endl;
@@ -130,7 +157,7 @@ void FileToQueue(PriorityQueue& pq, const string& fileName){
 
 
 int main(){
-    string fileName = "Task.txt";
+    string fileName = "Task_List.txt";
     PriorityQueue pq;
     
     FileToQueue(pq,fileName);         //loading all tasks from the file to priority queue at the beginning of program since there could be some left over tasks in file
