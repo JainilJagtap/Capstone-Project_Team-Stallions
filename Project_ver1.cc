@@ -126,10 +126,10 @@ void addTask(const string &fileName, PriorityQueue &pq)
     IgnoreNewChar;
     getline(cin, newTask.description);
 
-    cout << "Enter the priority: ";
+    cout << "Enter the priority ranging in (0-9): ";
     cin >> newTask.priority;
     IgnoreNewChar;
-    cout << "Enter the deadline date as dd mm yy: ";
+    cout << "Enter the deadline date as dd-mm-yyyy: ";
     cin >> newTask.date;
     IgnoreNewChar;
 
@@ -149,7 +149,7 @@ void addTask(const string &fileName, PriorityQueue &pq)
     string dd, mm, yy;
     dd = newTask.date.substr(0, 2);
     mm = newTask.date.substr(3, 2);
-    yy = newTask.date.substr(6, 2);
+    yy = newTask.date.substr(6, 4);
     pday = stoi(dd);
     pmonth = stoi(mm);
     pyear = stoi(yy);
@@ -180,7 +180,7 @@ void FileToQueue(PriorityQueue &pq, const string &fileName)
             string dd, mm, yy;
             dd = s.substr(sep + 2, 2);
             mm = s.substr(sep + 5, 2);
-            yy = s.substr(sep + 8, 2);
+            yy = s.substr(sep + 8, 4);
 
             int ddd, mmm, yyy;
             ddd = stoi(dd);
@@ -234,7 +234,7 @@ void remainderfunc(PriorityQueue &pq, const string &fileName)
                     string dd, mm, yy;
                     dd = s.substr(i + 1, 2);
                     mm = s.substr(i + 4, 2);
-                    yy = s.substr(i + 7, 2);
+                    yy = s.substr(i + 7, 4);
 
                     int ddd, mmm, yyy;
                     ddd = stoi(dd);
@@ -243,7 +243,7 @@ void remainderfunc(PriorityQueue &pq, const string &fileName)
 
                     time_t now = time(0);
                     tm *ltm = localtime(&now);
-                    int curr_year = ltm->tm_year - 100;
+                    int curr_year = 1900 + ltm->tm_year;
                     int curr_month = 1 + ltm->tm_mon;
                     int curr_day = ltm->tm_mday;
 
@@ -328,11 +328,11 @@ void deletetask(const string &s, const string &fileName, PriorityQueue &pq)
         else
         {
             Node *temp = head;
-            while (temp->next != nullptr && temp->next->data != s)     //going to the node with the user inputted data in the linked list
+            while (temp->next != nullptr && temp->next->data != s) // going to the node with the user inputted data in the linked list
             {
                 temp = temp->next;
             }
-            if (temp->next != nullptr)                       //delete this node
+            if (temp->next != nullptr) // delete this node
             {
                 Node *tempNext = temp->next;
                 temp->next = tempNext->next;
@@ -347,14 +347,9 @@ void deletetask(const string &s, const string &fileName, PriorityQueue &pq)
 }
 
 // function to get deadline of a task inputted by user
-void getdeadline(PriorityQueue &pq, const string &fileName)
+int getdeadline(string &a, PriorityQueue &pq, const string &fileName)
 {
-    string a;
     string date;
-    cout << "Enter the task name" << endl;
-    cin >> a;
-    IgnoreNewChar;
-
     ifstream fileIn(fileName);
 
     if (fileIn.is_open())
@@ -386,7 +381,7 @@ void getdeadline(PriorityQueue &pq, const string &fileName)
                     string dd, mm, yy;
                     dd = s.substr(i + 1, 2);
                     mm = s.substr(i + 4, 2);
-                    yy = s.substr(i + 7, 2);
+                    yy = s.substr(i + 7, 4);
 
                     int ddd, mmm, yyy;
                     ddd = stoi(dd);
@@ -395,12 +390,12 @@ void getdeadline(PriorityQueue &pq, const string &fileName)
 
                     time_t now = time(0);
                     tm *ltm = localtime(&now);
-                    int curr_year = ltm->tm_year - 100;
+                    int curr_year = 1900 + ltm->tm_year;
                     int curr_month = 1 + ltm->tm_mon;
                     int curr_day = ltm->tm_mday;
 
                     int remaining_days = (yyy - curr_year) * 365 + (mmm - curr_month) * 30 + (ddd - curr_day);
-                    cout << "Days remaining for the task: " << remaining_days << endl;
+                    return remaining_days;
                     break;
                 }
             }
@@ -410,8 +405,51 @@ void getdeadline(PriorityQueue &pq, const string &fileName)
     {
         cout << "Unable to open file for reading." << endl; // Debugging output
     }
+    return 0;
 }
 
+// function to mark a task done
+void markTask(string &fileName, PriorityQueue &pq)
+{
+    string completedTask;
+    cout << "Enter the completed task: ";
+    IgnoreNewChar;
+    getline(cin, completedTask);
+
+    // adding the task to a new file Tasks_completed
+    ofstream myFile("Tasks_completed.txt", ios::app);
+    if (myFile.is_open())
+    {
+        myFile << completedTask << endl;
+        myFile.close();
+    }
+    else
+    {
+        cout << "Unable to open file for writing completed tasks." << endl;
+    }
+
+    // deleting the task from original file
+    deletetask(completedTask, fileName, pq);
+}
+
+// function to view all the completed tasks
+void viewcompletedtask()
+{
+    ifstream fileIn("Tasks_completed.txt");
+    if (fileIn.is_open())
+    {
+        string s;
+        while (getline(fileIn, s))
+        {
+            cout << s << endl;
+        }
+        fileIn.close();
+    }
+    else
+    {
+        cout << "Unable to open file for reading completed tasks." << endl;
+    }
+}
 
 // function to add missing tasks
 void missingTask(string &fileName, PriorityQueue &pq)
@@ -504,7 +542,6 @@ void missingTask(string &fileName, PriorityQueue &pq)
     }
 }
 
-
 int main()
 {
     string fileName = "Task_List.txt";
@@ -514,38 +551,63 @@ int main()
 
     while (true)
     {
+        // this would add missing to task if deadline has gone past everytime program is running
+        missingTask(fileName, pq);
         // this would give the remainder in console everytime the program is running
         remainderfunc(pq, fileName);
 
-        cout << "To add a task press 2" << endl;
-        cout << "To delete a task press 3" << endl;
-        cout << "To get deadline of task with maximum priority press 4" << endl;
-        cout << "To see the deadline of a particular task press 5" << endl;
-        cout << "To exit the program press 6" << endl;
+        cout << "To add a task press 1" << endl;
+        cout << "To delete a task press 2" << endl;
+        cout << "To get deadline of task with maximum priority press 3" << endl;
+        cout << "To see the deadline of a particular task press 4" << endl;
+        cout << "To mark a task done press 5" << endl;
+        cout << "To view completed  task press 6" << endl;
+        cout << "To Display all the tasks in the order press 7" << endl;
+        cout << "To exit the program press 8" << endl;
 
         int num;
         cin >> num;
 
-        if (num == 6)
+        if (num == 8)
             break;
 
-        if (num == 2)
+        if (num == 1)
         {
             addTask(fileName, pq);
         }
-        if (num == 3)
+        if (num == 2)
         {
             string str;
-            cin >> str;
+            cout << "Enter task description to be deleted: ";
+            IgnoreNewChar;
+            getline(cin, str);
             deletetask(str, fileName, pq);
         }
-        if (num == 4)
+        if (num == 3)
         {
             cout << pq.peek() << endl;
         }
+        if (num == 4)
+        {
+            string a;
+            cout << "Enter the task description" << endl;
+            IgnoreNewChar;
+            getline(cin, a);
+            int remDays = getdeadline(a, pq, fileName);
+            cout << "Remaining days for the given task is: " << remDays << endl;
+        }
         if (num == 5)
         {
-            getdeadline(pq, fileName);
+            markTask(fileName, pq);
+        }
+        if (num == 6)
+        {
+            viewcompletedtask();
+        }
+        if (num == 7)
+        {
+            cout << "Tasks that are left are in this order: " << endl;
+            pq.printPQ();
         }
     }
     return 0;
