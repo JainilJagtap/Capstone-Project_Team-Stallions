@@ -406,6 +406,52 @@ void getdeadline(PriorityQueue &pq, const string &fileName)
     }
 }
 
+
+// function to add missing tasks
+void missingTask(string &fileName, PriorityQueue &pq)
+{
+    ifstream fileIn(fileName);
+    ofstream fileOut("temp1.txt");
+    if (fileIn.is_open())
+    {
+        string s;
+        while (getline(fileIn, s))
+        {
+            string des;
+            int i;
+            for (i = 0; i < s.size(); i++)
+            {
+                if (s[i] == ',')
+                    break;
+                else
+                {
+                    des += s[i];
+                }
+            }
+            int prio = s[i + 1] - '0';
+            i = i + 3;
+            string dat;
+            int j;
+            for (j = i; j < s.size(); j++)
+            {
+                if (s[j] == ',')
+                    break;
+                dat += s[j];
+            }
+
+            // this will check if the task has gone past deadline and add missing to it in file
+            if (getdeadline(des, pq, fileName) < 0)
+            {
+                if (s[j + 1] != ',')
+                    fileOut << des << "," << prio << "," << dat << ","
+                            << "missing" << endl;
+            }
+            else
+            {
+                fileOut << des << "," << prio << "," << dat << endl;
+            }
+
+
 int main()
 {
     string fileName = "Task_List.txt";
