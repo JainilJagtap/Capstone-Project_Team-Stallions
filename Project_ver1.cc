@@ -91,15 +91,21 @@ public:
         return head;
     }
 
-    void printPQ()                    //displaying the priority queue
+    void printPQ() // displaying the priority queue
     {
         Node *temp = head;
-        while (temp)
+        if (temp == NULL)
         {
-            cout << temp->data << " ";
-            temp = temp->next;
+            cout << "No tasks in the Task manager" << endl;
         }
-        cout << endl;
+        else
+        {
+            while (temp)
+            {
+                cout << temp->data << endl;
+                temp = temp->next;
+            }
+        }
     }
 
     ~PriorityQueue()
@@ -451,6 +457,53 @@ void missingTask(string &fileName, PriorityQueue &pq)
                 fileOut << des << "," << prio << "," << dat << endl;
             }
 
+            // now once task is marked missing in file it should be deleted from priority queue
+            if (getdeadline(des, pq, fileName) < 0)
+            {
+                Node *head = pq.getHead();
+                if (head == nullptr)
+                {
+                    cout << "No tasks left in the Task Manager." << endl;
+                }
+                else
+                {
+                    if (head->data == des)
+                    {
+                        pq.pop(); // Removing the head of the priority queue
+                    }
+                    else
+                    {
+                        Node *temp = head;
+                        while (temp->next != nullptr && temp->next->data != des) // going to the node with the user inputted data in the linked list
+                        {
+                            temp = temp->next;
+                        }
+                        if (temp->next != nullptr) // delete this node
+                        {
+                            Node *tempNext = temp->next;
+                            temp->next = tempNext->next;
+                            delete tempNext;
+                        }
+                        else
+                        {
+                            cout << "Task not found in the priority queue." << endl;
+                        }
+                    }
+                }
+            }
+        }
+        fileIn.close();
+        fileOut.close();
+        // removing the original file and renaming the temporary file to original file
+        remove(fileName.c_str());
+        rename("temp1.txt", fileName.c_str());
+    }
+    else
+    {
+        cout << "Unable to open file for reading." << endl;
+    }
+}
+
 
 int main()
 {
@@ -485,7 +538,6 @@ int main()
             string str;
             cin >> str;
             deletetask(str, fileName, pq);
-            pq.printPQ();
         }
         if (num == 4)
         {
