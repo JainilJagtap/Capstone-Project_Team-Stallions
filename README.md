@@ -27,3 +27,7 @@ We have built a Task scheduler with Remainder functionality, in which users are 
 4. **Parv Khetawat(202301157):**
    - Implemented feature to view completed tasks.
    - Implemented a function to see the deadline of a particular task.
+
+### References:
+We used ASCII art in our code for which we took reference from this website:
+(https://patorjk.com/software/taag/#p=display&v=1&f=ANSI%20Shadow&t=WELCOME%20TO%20TASK%20SCHEDULER)
